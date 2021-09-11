@@ -1,0 +1,23 @@
+<%= content_for :header do %>
+  <%= index_header "Email Templates" %>
+<% end %>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Template</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @email_templates.each do |template| %>
+      <tr>
+        <td><%= template.human_name %></td>
+        <td>
+          <%= link_to 'Edit', edit_admin_settings_email_template_path(template) %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

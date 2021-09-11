@@ -113,6 +113,10 @@ Rails.application.routes.draw do
       get "money", to: "money#index"
     end
 
+    namespace :settings do
+      resources :email_templates
+    end
+
     resources :items_without_image, only: :index
     resources :member_requests, only: :index
     resources :monthly_activities, only: :index

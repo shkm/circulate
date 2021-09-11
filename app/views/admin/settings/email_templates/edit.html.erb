@@ -1,0 +1,26 @@
+<%= content_for :header do %>
+  <%= index_header "Editing template for #{@email_template.human_name}" %>
+<% end %>
+
+<div class="columns">
+  <div class="column col-6">
+    <%= form_with(model: @email_template, url: admin_settings_email_template_path(@email_template), scope: "email_template", local: true, builder: SpectreFormBuilder) do |form| %>
+      <%= form.errors %>
+
+      <% @email_template.fields.each do |field| %>
+        <% if field.rich_text? %>
+          <%= form.rich_text_area field.name %>
+        <% else %>
+          <%= form.text_field field.name %>
+        <% end %>
+      <% end %>
+
+      <%= form.actions do %>
+        <%= form.submit %>
+      <% end %>
+    <% end %>
+  </div>
+  <div class="column col-6">
+    <iframe id="preview" width="100%" height="100%" src="<%= admin_settings_email_template_path(@email_template) %>">
+  </div>
+</div>
