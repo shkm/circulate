@@ -45,6 +45,10 @@ class LoanSummary < ApplicationRecord
     !ended? && due_at < time
   end
 
+  def overdue
+    overdue_as_of?(Time.current)
+  end
+
   def renewal_request_rejected?
     renewal_requests.max_by { |r| r.created_at }&.rejected?
   end
