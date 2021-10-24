@@ -40,6 +40,7 @@ class MemberMailer < ApplicationMailer
   def overdue_notice
     @subject = "You have overdue items!"
     @warning = "Please return all overdue items as soon as possible so other members can check them out."
+    @summaries = params[:summaries].map { |summary| summary.overdue }
     summary_mail
   end
 
