@@ -53,14 +53,23 @@ class Item < ApplicationRecord
   scope :brand_contains, ->(query) { where("brand ILIKE ?", "#{"%" if query.size > 1}#{query}%").limit(10).distinct }
   scope :size_contains, ->(query) { where("size ILIKE ?", "#{"%" if query.size > 1}#{query}%").limit(10).distinct }
   scope :strength_contains, ->(query) { where("strength ILIKE ?", "#{"%" if query.size > 1}#{query}%").limit(10).distinct }
+
   scope :listed_publicly, -> { where("status = ? OR status = ?", Item.statuses[:active], Item.statuses[:maintenance]) }
   scope :with_category, ->(category) { joins(:categories).merge(category.items) }
+
   scope :available, -> { left_outer_joins(:checked_out_exclusive_loan).where(loans: {id: nil}) }
   scope :loaned_out, -> { left_outer_joins(:checked_out_exclusive_loan).where.not(loans: {id: nil}) }
   scope :without_attached_image, -> { left_joins(:image_attachment).where(active_storage_attachments: {record_id: nil}) }
   scope :in_maintenance, -> { where("status = ?", Item.statuses[:maintenance]) }
   scope :without_holds, -> { left_outer_joins(:holds).where(holds: {id: nil}) }
-  scope :uncounted, -> { joins(:borrow_policy).where(borrow_policies: {uniquely_numbered: false}) }
+
+  scope :collectively_numbered, -> { joins(:borrow_policy).where(borrow_policies: {uniquely_numbered: false}) }
+  scope :uniquely_numbered, -> { joins(:borrow_policy).where(borrow_policies: {uniquely_numbered: true}) }
+
+  scope :available, {
+    joins(:borrow_policy).left_outer_joins(:checked_out_exclusive_loan).left_outer_joins(:active_holds).where(borrow_policies: {uniquely_numbered: false}).or(Item.where("loans.id IS NULL AND holds.id IS NULL"))
+  }
+
   scope :with_uniquely_numbered_borrow_policy, -> { joins(:borrow_policy).where(borrow_policies: {uniquely_numbered: true}) }
   scope :without_any_holds, -> { left_outer_joins(:holds).where(holds: {id: nil}) }
   scope :not_active, -> { where.not(id: active) }

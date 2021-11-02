@@ -9,13 +9,13 @@ class Hold < ApplicationRecord
   belongs_to :creator, class_name: "User"
   belongs_to :loan, required: false
 
-  scope :active, ->(now = Time.current) { where("ended_at IS NULL AND (started_at IS NULL OR started_at >= ?)", now.beginning_of_day - HOLD_LENGTH) }
+  scope :active, ->(now = Time.current) { where("holds.ended_at IS NULL AND (holds.started_at IS NULL OR holds.started_at >= ?)", now.beginning_of_day - HOLD_LENGTH) }
   scope :inactive, ->(now = Time.current) { ended.or(expired(now)) }
-  scope :ended, -> { where("ended_at IS NOT NULL") }
-  scope :expired, ->(now = Time.current) { where("started_at < ?", now.beginning_of_day - HOLD_LENGTH) }
-  scope :started, -> { where("started_at IS NOT NULL") }
+  scope :ended, -> { where("holds.ended_at IS NOT NULL") }
+  scope :expired, ->(now = Time.current) { where("holds.started_at < ?", now.beginning_of_day - HOLD_LENGTH) }
+  scope :started, -> { where("holds.started_at IS NOT NULL") }
 
-  scope :recent_first, -> { order("created_at desc") }
+  scope :recent_first, -> { order("holds.created_at desc") }
 
   validates :item, presence: true
   validates_each :item do |record, attr, value|
