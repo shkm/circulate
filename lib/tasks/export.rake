@@ -23,72 +23,66 @@ namespace :export do
   end
 
   desc "Export members and memberships to a flat CSV"
-  task members_and_memberships_to_csv: :environment do
-    now = Time.current.rfc3339
-    path = Rails.root + "exports" + "members-memberships-#{now}.csv"
-    puts "writing member and membership info to #{path}"
-
-    CSV.open(path, "wb") do |csv|
-      csv << [
-        *Member.column_names,
-        *Membership.column_names.map { |n| "membership_#{n}" }
-      ]
-      Member.includes(:memberships).find_each do |member|
-        if member.memberships.any?
-          member.memberships.each do |membership|
-            csv << [
-              *member.attributes.values_at(*Member.column_names),
-              *membership.attributes.values_at(*Membership.column_names)
-            ]
-          end
-        else
-          csv << [
-            *member.attributes.values_at(*Member.column_names)
-          ]
-        end
-      end
-    end
-  end
-
-  desc "Export members and memberships to a flat CSV"
   task members_to_csv: :environment do
     now = Time.current.rfc3339
     path = Rails.root + "exports" + "members-#{now}.csv"
     puts "writing member info to #{path}"
 
+    max_memberships = 3
+    membership_columns = max_memberships.times.flat_map { |n|
+      ["membership_started#{n + 1}", "membership_ended#{n + 1}", "membership_amount#{n + 1}"]
+    }
+
     CSV.open(path, "wb") do |csv|
       csv << [
-        *Member.column_names,
         "level",
-        *Membership.column_names.map { |n| "membership_#{n}" },
-        "membership_amount",
+        *membership_columns
       ]
       Member.find_each do |member|
-        membership = member.memberships.order(created_at: "asc").first
-        if membership
-          csv << [
-            *member.attributes.values_at(*Member.column_names),
-            "member",
-            *membership.attributes.values_at(*Membership.column_names),
-            membership.amount.format
-          ]
+        level = member.memberships.any?
+        name_parts = member.full_name.split(" ")
+        names = if name_parts.size == 2
+          [name_parts[0], "", name_parts[1]]
         else
-          # csv << [
-          #   *member.attributes.values_at(*Member.column_names),
-          #   "person"
-          # ]
+          [name_parts[0], name_parts[1], name_parts[2..]&.join(" ")]
         end
+        row = [
+          member.preferred_name,
+          *names,
+          member.email,
+          member.phone_number,
+          member.status,
+          member.address1,
+          member.address2,
+          member.city,
+          member.region,
+          member.postal_code,
+          member.number,
+          member.pronouns.join(" "),
+          member.volunteer_interest,
+          level
+        ]
+
+        member.memberships.order("created_at ASC").each do |membership|
+          row << membership.started_at&.to_date&.strftime("%m/%d/%Y")
+          row << membership.ended_at&.to_date&.strftime("%m/%d/%Y")
+          row << membership.amount.format
+        end
+        csv << row
       end
     end
   end
 
   desc "Export items to CSV"
   task items_to_csv: :environment do
+    now = Time.current.rfc3339
+    path = Rails.root + "exports" + "all-items-#{now}.csv"
+    puts "writing items to #{path}"
     columns = %w[
       id name description size brand model serial strength
       quantity checkout_notice status created_at updated_at
     ]
-    CSV.open(Rails.root + "exports" + "all_items.csv", "wb") do |csv|
+    CSV.open(path, "wb") do |csv|
       csv << [
         "complete_number",
         "code",
@@ -96,14 +90,39 @@ namespace :export do
         "categories",
         *columns
       ]
-      Item.includes(:borrow_policy, :categories).in_batches(of: 100) do |items|
+      Item.includes(:borrow_policy, :category_nodes).in_batches(of: 100) do |items|
         items.each do |item|
           csv << [
             item.complete_number,
             item.borrow_policy.code,
             item.number,
-            item.categories.map(&:name).sort.join(", "),
+            item.category_nodes.map { |cn| cn.path_names.join("//") }.sort.join("; "),
             *item.attributes.values_at(*columns)
+          ]
+        end
+      end
+    end
+  end
+
+  desc "Export categories to CSV"
+  task categories_to_csv: :environment do
+    now = Time.current.rfc3339
+    path = Rails.root + "exports" + "all-categories-#{now}.csv"
+    puts "writing categories to #{path}"
+    CSV.open(path, "wb") do |csv|
+      csv << [
+        "id",
+        "name",
+        "complete_name",
+        "items_count"
+      ]
+      CategoryNode.in_batches(of: 100) do |nodes|
+        nodes.each do |node|
+          csv << [
+            node.id,
+            node.name,
+            node.path_names.join("//"),
+            node.categorizations_count
           ]
         end
       end

@@ -1,6 +1,6 @@
 ## Contributing
 
-We ♥ contributors! By participating in this project, you agree to abide by our [code of conduct](./CODE_OF_CONDUCT).
+We ♥ contributors! By participating in this project, you agree to abide by our [code of conduct](./CODE_OF_CONDUCT.md).
 
 If you're unsure about an issue or have any questions or concerns, just ask in an *existing issue* or *open a new issue*. If you would like to talk to other contributors and get more context about the project before jumping in, you can request to join [RubyForGood Slack](https://rubyforgood.herokuapp.com/). Once you are in Slack, come by `#circulate` channel, introduce yourself, and ask us questions!
 
@@ -8,7 +8,7 @@ If you don't have any questions, the issue is clear, and no one has commented sa
 
 Here are the basic steps to submit a pull request:
 
-1. Claim an issue on [our issue tracker](https://github.com/rubyforgood/circulate/issues) by commenting on the issue saying you are working on it. The issues that are listed on [the project board in the _Ready to be worked on_ column](https://github.com/rubyforgood/circulate/projects/4#column-10622874) are the highest priority based on input from oustakeholders.
+1. Claim an issue on [our issue tracker](https://github.com/rubyforgood/circulate/issues) by commenting on the issue saying you are working on it. The issues that are listed on [the project board in the _Ready to be worked on_ column](https://github.com/rubyforgood/circulate/projects/4#column-10622874) are the highest priority based on input from our stakeholders.
 
 If the issue you want to work on doesn't exist yet, feel free to open it. Please only claim one issue at a time unless you are waiting on us to review work.
 
@@ -42,7 +42,7 @@ Some things that will increase the chance that your pull request is accepted:
 
   ```
   bundle exec rails test
-  bundle exec tails test:system
+  bundle exec rails test:system
   bundle exec standardrb
   ```
 

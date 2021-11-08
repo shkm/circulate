@@ -33,7 +33,7 @@ class Member < ApplicationRecord
   validates :city, presence: true
   validates :region, presence: true
   validates :postal_code, length: {is: 5, blank: false, message: "must be 5 digits"}
-  validate :postal_code_must_be_in_chicago
+  validate :postal_code_must_be_in_library_service_area
 
   scope :matching, ->(query) {
     where("email ILIKE ? OR full_name ILIKE ? OR preferred_name ILIKE ? OR phone_number LIKE ? OR phone_number = ?",
@@ -53,6 +53,9 @@ class Member < ApplicationRecord
   before_validation :downcase_email
 
   after_save :update_user_email
+  after_update :update_neon_crm, if: :can_update_neon_crm?
+
+  acts_as_tenant :library
 
   def roles
     user ? user.roles : [:member]
@@ -68,6 +71,10 @@ class Member < ApplicationRecord
 
   def admin?
     roles.include? :admin
+  end
+
+  def super_admin?
+    roles.include? :super_admin
   end
 
   def assign_number
@@ -104,12 +111,22 @@ class Member < ApplicationRecord
     user.update_column(:email, email) if user && !user.new_record? # Skip validations
   end
 
+  def update_neon_crm
+    organization_id, api_key = Neon.credentials_for_library(library)
+    client = Neon::Client.new(organization_id, api_key)
+    client.update_account_with_member(self)
+  end
+
+  def can_update_neon_crm?
+    Rails.env.production? && Neon.credentials_for_library(library)
+  end
+
   def strip_phone_number
     self.phone_number = phone_number.gsub(/\D/, "")
   end
 
   def set_default_address_fields
-    self.city ||= "Chicago"
+    self.city ||= library.city
     self.region ||= "IL"
   end
 
@@ -117,11 +134,11 @@ class Member < ApplicationRecord
     self.email = email.try(:downcase)
   end
 
-  def postal_code_must_be_in_chicago
-    return true if postal_code.nil?
+  def postal_code_must_be_in_library_service_area
+    return unless library && postal_code.present?
 
-    unless ["60707", "60827"].include?(postal_code) || postal_code.starts_with?("606")
-      errors.add :postal_code, "must be in Chicago"
+    unless library.allows_postal_code?(postal_code)
+      errors.add :postal_code, "must be one of: #{library.admissible_postal_codes.join(", ")}"
     end
   end
 end

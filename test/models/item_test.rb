@@ -38,7 +38,7 @@ class ItemTest < ActiveSupport::TestCase
 
   test "strips whitespace before validating" do
     item = Item.new(name: " name ", brand: " brand ", size: " 12v", model: "123 ",
-                    serial: " a bc", strength: " heavy")
+      serial: " a bc", strength: " heavy")
 
     item.valid?
 
@@ -100,6 +100,14 @@ class ItemTest < ActiveSupport::TestCase
 
   test "can delete an item with a hold" do
     item = create(:item)
+    create(:hold, item: item)
+
+    assert item.destroy
+  end
+
+  test "can delete an item with an attachment" do
+    item = create(:item)
+    create(:item_attachment, item: item, creator: create(:user))
     create(:hold, item: item)
 
     assert item.destroy

@@ -92,10 +92,11 @@
           <%= select("appointment", "time_range_string", grouped_options_for_select(@appointment_slots, @appointment.time_range_string), { include_blank: 'Select a Date' },
             class: "form-select", data: { action: "appointment-date#sync", target: "appointment-date.select" }, disabled: !can_schedule_appointment) %>
             <span data-target="appointment-date.display"></span>
+            <p>Don't worry if you arrive a little bit early or late, as long as it's within the library's open hours.</p>
         </div>
 
         <div class="form-group mb-2">
-          <label class="form-label" for="appointment_comment">Optional: Tell us about the project you are working on. This may help us recommend a different or additional tool for you.</label>
+          <label class="form-label" for="appointment_comment">Tell us about the project you're working on. We may be able to recommend a different or additional tool. If you're dropping off, please let us know if you had any issues with the items you're returning.</label>
           <%= form.text_area :comment, class: "form-input", disabled: !can_schedule_appointment %>
         </div>
 

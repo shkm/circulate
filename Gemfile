@@ -4,7 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby "2.7.2"
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem "rails", "~> 6.1.3"
+gem "rails", "~> 6.1.4"
 
 # Use postgresql as the database for Active Record
 gem "pg", ">= 0.18", "< 2.0"
@@ -25,6 +25,9 @@ gem "jbuilder", "~> 2.5"
 # Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
+# The latest release doesn't include the test helpers. Using this branch includes those.
+# See: https://github.com/ErwinM/acts_as_tenant/issues/215#issuecomment-552076674
+gem "acts_as_tenant"
 gem "devise"
 gem "pundit"
 gem "audited", github: "collectiveidea/audited"
@@ -38,6 +41,7 @@ gem "scenic"
 gem "reverse_markdown"
 gem "http"
 gem "translation"
+gem "store_model"
 
 gem "square.rb"
 gem "aws-sdk-s3", require: false
@@ -80,7 +84,7 @@ group :test do
   # Adds support for Capybara system testing and selenium driver
   gem "capybara", ">= 2.15"
   gem "selenium-webdriver"
-  gem "webdrivers", "~> 4.6"
+  gem "webdrivers", "~> 5.0"
   gem "minitest-ci"
   gem "rails-controller-testing"
 end

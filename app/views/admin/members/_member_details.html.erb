@@ -5,6 +5,7 @@
   <div class="panel-body">
     <ul class="member-stats member">
       <%= icon_stat "message-square", member.display_pronouns, title: "pronouns", placeholder: "No pronouns" %>
+      <%= icon_stat "volume-2", member.pronunciation, title: "pronunciation", placeholder: "No pronunciation" %>
       <%= icon_stat "user", member.full_name, title: "full_name", placeholder: "No name" %>
       <%= icon_stat "mail", member.email, title: "email", placeholder: "No email" %>
       <% phone_number = format_phone_number member.phone_number%>
@@ -43,7 +44,7 @@
       <% end %>
       <li>
         <%= feather_icon "credit-card" %>
-        <%= link_to member.account_balance.format, admin_member_adjustments_path(member) %>
+        <%= link_to member.account_balance.format, admin_member_memberships_path(member) %>
       </li>
       <% if member.active_membership %>
         <li>
@@ -59,17 +60,6 @@
             Pending membership
           <% end %>
         </li>
-      <% end %>
-    </ul>
-
-    <ul class="member-stats notes">
-      <li><%= feather_icon "clipboard" %>Notes</li>
-      <% member.notes.each do |note| %>
-        <%= modal title: "Note from #{note.creator.member.full_name} #{time_ago_in_words(note.created_at)} ago", body: render(partial: "admin/notes/show", locals: { note: note, parent: @member }) do %>
-          <li>
-            <%= truncate(note.body.to_plain_text, length: 25) %> <%= tag.a "more", data: {action: "click->modal#show"} %>
-          </li>
-        <% end %>
       <% end %>
     </ul>
   </div>

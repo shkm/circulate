@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_24_051441) do
+ActiveRecord::Schema.define(version: 2021_10_14_184745) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -63,7 +63,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
   create_enum :user_role, [
     "staff",
     "admin",
-    "member"
+    "member",
+    "super_admin"
   ], force: :cascade
 
   create_table "action_text_rich_texts", force: :cascade do |t|
@@ -191,6 +192,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.boolean "default", default: false, null: false
     t.integer "renewal_limit", default: 0, null: false
     t.boolean "member_renewable", default: false, null: false
+    t.integer "library_id"
+    t.index ["library_id", "name"], name: "index_borrow_policies_on_library_id_and_name", unique: true
   end
 
   create_table "categories", force: :cascade do |t|
@@ -200,6 +203,9 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "categorizations_count", default: 0, null: false
     t.bigint "parent_id"
+    t.integer "library_id"
+    t.index ["library_id", "name"], name: "index_categories_on_library_id_and_name", unique: true
+    t.index ["library_id", "slug"], name: "index_categories_on_library_id_and_slug", unique: true
     t.index ["parent_id"], name: "index_categories_on_parent_id"
   end
 
@@ -219,6 +225,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "code"
+    t.integer "library_id"
+    t.index ["library_id", "code"], name: "index_documents_on_library_id_and_code"
   end
 
   create_table "email_templates", force: :cascade do |t|
@@ -236,10 +244,12 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "finish", null: false
     t.string "summary"
     t.string "description"
-    t.json "attendees", default: {}
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "library_id"
+    t.jsonb "attendees"
     t.index ["calendar_id", "calendar_event_id"], name: "index_events_on_calendar_id_and_calendar_event_id", unique: true
+    t.index ["library_id"], name: "index_events_on_library_id"
   end
 
   create_table "gift_memberships", force: :cascade do |t|
@@ -251,6 +261,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "recipient_name"
+    t.integer "library_id"
+    t.index ["library_id", "code"], name: "index_gift_memberships_on_library_id_and_code", unique: true
     t.index ["membership_id"], name: "index_gift_memberships_on_membership_id"
   end
 
@@ -262,9 +274,11 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "updated_at", precision: 6, null: false
     t.datetime "ended_at"
     t.bigint "loan_id"
+    t.integer "library_id"
     t.datetime "started_at"
     t.index ["creator_id"], name: "index_holds_on_creator_id"
     t.index ["item_id"], name: "index_holds_on_item_id"
+    t.index ["library_id"], name: "index_holds_on_library_id"
     t.index ["loan_id"], name: "index_holds_on_loan_id"
     t.index ["member_id"], name: "index_holds_on_member_id"
   end
@@ -298,10 +312,31 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.string "checkout_notice"
     t.integer "holds_count", default: 0, null: false
     t.string "other_names"
+    t.integer "library_id"
     t.enum "power_source", enum_name: "power_source"
     t.text "location_area"
     t.text "location_shelf"
+    t.text "plain_text_description"
+    t.index ["borrow_policy_id", "library_id"], name: "index_items_on_borrow_policy_id_and_library_id"
     t.index ["borrow_policy_id"], name: "index_items_on_borrow_policy_id"
+    t.index ["library_id"], name: "index_items_on_library_id"
+    t.index ["number", "library_id"], name: "index_items_on_number_and_library_id", unique: true
+  end
+
+  create_table "libraries", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "hostname", null: false
+    t.string "member_postal_code_pattern", limit: 100
+    t.string "city", null: false
+    t.string "email", null: false
+    t.text "address"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.boolean "allow_members", default: true, null: false
+    t.boolean "allow_payments", default: true, null: false
+    t.boolean "allow_volunteers", default: true, null: false
+    t.boolean "allow_appointments", default: true, null: false
+    t.index ["hostname"], name: "index_libraries_on_hostname", unique: true
   end
 
   create_table "loans", force: :cascade do |t|
@@ -314,11 +349,19 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.boolean "uniquely_numbered", null: false
     t.integer "renewal_count", default: 0, null: false
     t.bigint "initial_loan_id"
+    t.integer "library_id"
+    t.index ["ended_at", "library_id"], name: "index_loans_on_ended_at_and_library_id"
     t.index ["ended_at"], name: "index_loans_on_ended_at"
+    t.index ["initial_loan_id", "library_id"], name: "index_loans_on_initial_loan_id_and_library_id"
+    t.index ["initial_loan_id", "renewal_count", "library_id"], name: "index_loans_on_initial_loan_id_and_renewal_count_and_library_id", unique: true
     t.index ["initial_loan_id", "renewal_count"], name: "index_loans_on_initial_loan_id_and_renewal_count", unique: true
     t.index ["initial_loan_id"], name: "index_loans_on_initial_loan_id"
+    t.index ["item_id", "library_id"], name: "index_active_numbered_loans_on_item_id_and_library_id", unique: true, where: "((ended_at IS NULL) AND (uniquely_numbered = true))"
+    t.index ["item_id", "library_id"], name: "index_loans_on_item_id_and_library_id"
     t.index ["item_id"], name: "index_active_numbered_loans_on_item_id", unique: true, where: "((ended_at IS NULL) AND (uniquely_numbered = true))"
     t.index ["item_id"], name: "index_loans_on_item_id"
+    t.index ["library_id"], name: "index_loans_on_library_id"
+    t.index ["member_id", "library_id"], name: "index_loans_on_member_id_and_library_id"
     t.index ["member_id"], name: "index_loans_on_member_id"
   end
 
@@ -346,6 +389,10 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.string "region"
     t.integer "number"
     t.text "pronouns", default: [], array: true
+    t.integer "library_id"
+    t.string "pronunciation"
+    t.index ["library_id"], name: "index_members_on_library_id"
+    t.index ["number", "library_id"], name: "index_members_on_number_and_library_id"
     t.index ["number"], name: "index_members_on_number", unique: true
   end
 
@@ -355,6 +402,7 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "ended_at", precision: 6
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "library_id"
     t.index ["member_id"], name: "index_memberships_on_member_id"
   end
 
@@ -377,6 +425,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.string "subject", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "library_id"
+    t.index ["library_id"], name: "index_notifications_on_library_id"
     t.index ["member_id"], name: "index_notifications_on_member_id"
     t.index ["uuid"], name: "index_notifications_on_uuid"
   end
@@ -386,6 +436,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.bigint "loan_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "library_id"
+    t.index ["library_id"], name: "index_renewal_requests_on_library_id"
     t.index ["loan_id"], name: "index_renewal_requests_on_loan_id"
   end
 
@@ -395,6 +447,8 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.integer "views_count", default: 0, null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "library_id"
+    t.index ["library_id", "slug"], name: "index_short_links_on_library_id_and_slug"
   end
 
   create_table "users", force: :cascade do |t|
@@ -415,9 +469,15 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
     t.datetime "updated_at", precision: 6, null: false
     t.enum "role", default: "member", null: false, enum_name: "user_role"
     t.bigint "member_id"
+    t.integer "library_id"
+    t.index ["email", "library_id"], name: "index_users_on_email_and_library_id"
     t.index ["email"], name: "index_users_on_email"
+    t.index ["library_id"], name: "index_users_on_library_id"
+    t.index ["member_id", "library_id"], name: "index_users_on_member_id_and_library_id"
     t.index ["member_id"], name: "index_users_on_member_id"
+    t.index ["reset_password_token", "library_id"], name: "index_users_on_reset_password_token_and_library_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["unlock_token", "library_id"], name: "index_users_on_unlock_token_and_library_id"
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
@@ -444,60 +504,6 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
   add_foreign_key "renewal_requests", "loans"
   add_foreign_key "users", "members"
 
-  create_view "category_nodes", materialized: true, sql_definition: <<-SQL
-      WITH RECURSIVE search_tree(id, name, slug, categorizations_count, parent_id, path_names, path_ids) AS (
-           SELECT categories.id,
-              categories.name,
-              categories.slug,
-              categories.categorizations_count,
-              categories.parent_id,
-              ARRAY[categories.name] AS "array",
-              ARRAY[categories.id] AS "array"
-             FROM categories
-            WHERE (categories.parent_id IS NULL)
-          UNION ALL
-           SELECT categories.id,
-              categories.name,
-              categories.slug,
-              categories.categorizations_count,
-              categories.parent_id,
-              (search_tree_1.path_names || categories.name),
-              (search_tree_1.path_ids || categories.id)
-             FROM (search_tree search_tree_1
-               JOIN categories ON ((categories.parent_id = search_tree_1.id)))
-            WHERE (NOT (categories.id = ANY (search_tree_1.path_ids)))
-          )
-   SELECT search_tree.id,
-      search_tree.name,
-      search_tree.slug,
-      search_tree.categorizations_count,
-      search_tree.parent_id,
-      search_tree.path_names,
-      search_tree.path_ids,
-      ( SELECT sum(st.categorizations_count) AS sum
-             FROM search_tree st
-            WHERE (search_tree.id = ANY (st.path_ids))) AS tree_categorizations_count,
-      ( SELECT array_agg(st.id) AS array_agg
-             FROM search_tree st
-            WHERE (search_tree.id = ANY (st.path_ids))) AS tree_ids
-     FROM search_tree
-    ORDER BY search_tree.path_names;
-  SQL
-  create_view "loan_summaries", sql_definition: <<-SQL
-      SELECT loans.item_id,
-      loans.member_id,
-      COALESCE(loans.initial_loan_id, loans.id) AS initial_loan_id,
-      max(loans.id) AS latest_loan_id,
-      min(loans.created_at) AS created_at,
-      max(loans.due_at) AS due_at,
-          CASE
-              WHEN (count(loans.ended_at) = count(loans.id)) THEN max(loans.ended_at)
-              ELSE NULL::timestamp without time zone
-          END AS ended_at,
-      max(loans.renewal_count) AS renewal_count
-     FROM loans
-    GROUP BY loans.item_id, loans.member_id, COALESCE(loans.initial_loan_id, loans.id);
-  SQL
   create_view "monthly_activities", sql_definition: <<-SQL
       WITH dates AS (
            SELECT min(date_trunc('month'::text, loans.created_at)) AS startm,
@@ -518,6 +524,64 @@ ActiveRecord::Schema.define(version: 2021_08_24_051441) do
        LEFT JOIN members m ON ((date_trunc('month'::text, m.created_at) = months.month)))
     GROUP BY months.month
     ORDER BY months.month;
+  SQL
+  create_view "category_nodes", materialized: true, sql_definition: <<-SQL
+      WITH RECURSIVE search_tree(id, library_id, name, slug, categorizations_count, parent_id, path_names, path_ids) AS (
+           SELECT categories.id,
+              categories.library_id,
+              categories.name,
+              categories.slug,
+              categories.categorizations_count,
+              categories.parent_id,
+              ARRAY[categories.name] AS "array",
+              ARRAY[categories.id] AS "array"
+             FROM categories
+            WHERE (categories.parent_id IS NULL)
+          UNION ALL
+           SELECT categories.id,
+              categories.library_id,
+              categories.name,
+              categories.slug,
+              categories.categorizations_count,
+              categories.parent_id,
+              (search_tree_1.path_names || categories.name),
+              (search_tree_1.path_ids || categories.id)
+             FROM (search_tree search_tree_1
+               JOIN categories ON ((categories.parent_id = search_tree_1.id)))
+            WHERE (NOT (categories.id = ANY (search_tree_1.path_ids)))
+          )
+   SELECT search_tree.id,
+      search_tree.library_id,
+      search_tree.name,
+      search_tree.slug,
+      search_tree.categorizations_count,
+      search_tree.parent_id,
+      search_tree.path_names,
+      search_tree.path_ids,
+      ( SELECT sum(st.categorizations_count) AS sum
+             FROM search_tree st
+            WHERE (search_tree.id = ANY (st.path_ids))) AS tree_categorizations_count,
+      ( SELECT array_agg(st.id) AS array_agg
+             FROM search_tree st
+            WHERE (search_tree.id = ANY (st.path_ids))) AS tree_ids
+     FROM search_tree
+    ORDER BY search_tree.path_names;
+  SQL
+  create_view "loan_summaries", sql_definition: <<-SQL
+      SELECT loans.library_id,
+      loans.item_id,
+      loans.member_id,
+      COALESCE(loans.initial_loan_id, loans.id) AS initial_loan_id,
+      max(loans.id) AS latest_loan_id,
+      min(loans.created_at) AS created_at,
+      max(loans.due_at) AS due_at,
+          CASE
+              WHEN (count(loans.ended_at) = count(loans.id)) THEN max(loans.ended_at)
+              ELSE NULL::timestamp without time zone
+          END AS ended_at,
+      max(loans.renewal_count) AS renewal_count
+     FROM loans
+    GROUP BY loans.library_id, loans.item_id, loans.member_id, COALESCE(loans.initial_loan_id, loans.id);
   SQL
   create_view "monthly_adjustments", sql_definition: <<-SQL
       SELECT (date_part('year'::text, adjustments.created_at))::integer AS year,

@@ -4,6 +4,8 @@ FactoryBot.define do
   end
 
   factory :member do
+    library { Library.first || create(:library) }
+
     full_name { "Ida B. Wells" }
     email
     phone_number { "3121234567" }
@@ -13,6 +15,10 @@ FactoryBot.define do
 
     trait :with_bio do
       bio { "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." }
+    end
+
+    trait :with_pronunciation do
+      pronunciation { "ˈaɪdə welz" }
     end
 
     factory :complete_member do

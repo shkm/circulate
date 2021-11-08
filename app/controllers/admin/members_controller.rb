@@ -65,8 +65,8 @@ module Admin
 
     def member_params
       params.require(:member).permit(
-        :full_name, :preferred_name, :email, :phone_number, :postal_code,
-        :desires, :reminders_via_email, :reminders_via_text, :receive_newsletter, :volunteer_interest,
+        :full_name, :pronunciation, :preferred_name, :email, :phone_number, :postal_code,
+        :desires, :reminders_via_email, :reminders_via_text, :receive_newsletter, :volunteer_interest, :bio,
         :status, :address1, :address2, pronouns: []
       )
     end

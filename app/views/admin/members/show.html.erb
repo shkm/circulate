@@ -91,7 +91,13 @@
                 <%= feather_icon "download" %>Return
               <% end %>
               <%= renewal_tooltop summary.latest_loan.renewable?, summary.item.borrow_policy.renewal_limit do %>
-                <%= button_to admin_renewals_path(loan_id: summary.latest_loan), method: :post, class:"btn ml-2 mb-2", disabled: !summary.latest_loan.renewable?, remote: true do %>
+                <% renew_button_data = if summary.latest_loan.any_active_holds?
+                      { confirm: "This item is on hold by other members and should only be renewed under special circumstances. Click OK to renew the item, or Cancel to go back." }
+                    else
+                      {}
+                    end
+                %>
+                <%= button_to admin_renewals_path(loan_id: summary.latest_loan), method: :post, class:"btn ml-2 mb-2", disabled: !summary.latest_loan.renewable?, remote: true, data: renew_button_data do %>
                   <%= feather_icon "repeat" %>Renew
                 <% end %>
               <% end %>
@@ -111,22 +117,6 @@
   <% end %>
 
   <%= render partial: "admin/members/lookup", locals: {member: @member}%>
-
-  <div class="columns member-notes">
-    <div class="column col-12">
-      <h2 id="checkout" class="h4">Member Notes</h2>
-      <div data-controller="toggle">
-      <button data-target="toggle.button" data-action="click->toggle#toggle" class="btn">
-        <%= feather_icon "message-square" %>Add a Note
-      </button>
-
-      <div data-target="toggle.toggled">
-        <%= portal do %>
-          <%= render partial: "admin/notes/form", locals: { parent: @member } %>
-        <% end %>
-      </div>
-    </div>
-  </div>
 </div>
 
 
