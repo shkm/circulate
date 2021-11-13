@@ -233,3 +233,14 @@ trix-toolbar {
     width: 10px;
   }
 }
+
+.btn:focus,
+a:focus,
+.form-input:focus,
+.form-checkbox input:focus + .form-icon {
+  outline: solid 3px $primary-color;
+}
+
+.btn:focus {
+  outline-offset: 5px;
+}
