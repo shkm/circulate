@@ -21,7 +21,7 @@ class MemberMailerTest < ActionMailer::TestCase
     end
 
     test "renders renewal request #{status} email for the first loan" do
-      item = create(:item)
+      item = create(:item, :with_image)
       loan = create(:loan, item: item)
       renewal_request = create(:renewal_request, loan: loan, status: status)
 
