@@ -12,6 +12,7 @@ module Admin
       def show
         @global_template = Email::GlobalSettings.first
         @email_template = Email::Template.find(params[:id])
+        @preview = true
         render layout: false
       end
 

@@ -2,16 +2,19 @@
   <%= index_header "Editing template for #{@email_template.human_name}" %>
 <% end %>
 
-<div class="columns">
+<div class="columns" data-controller="email-template-editor">
   <div class="column col-6">
-    <%= form_with(model: @email_template, url: admin_settings_email_template_path(@email_template), scope: "email_template", local: true, builder: SpectreFormBuilder) do |form| %>
+    <%= form_with(model: @email_template, url: admin_settings_email_template_path(@email_template), scope: "email_template", local: true, builder: SpectreFormBuilder, data: {target: "email-template-editor.form"}) do |form| %>
       <%= form.errors %>
 
       <% @email_template.fields.each do |field| %>
+        <% data_attrs = {
+          action: "mouseenter->email-template-editor#showMarquee mouseleave->email-template-editor#hideMarquee keyup->email-template-editor#update trix-change->email-template-editor#update", 
+        } %>
         <% if field.rich_text? %>
-          <%= form.rich_text_area field.name %>
+          <%= form.rich_text_area field.name, data: data_attrs %>
         <% else %>
-          <%= form.text_field field.name %>
+          <%= form.text_field field.name, data: data_attrs %>
         <% end %>
       <% end %>
 
@@ -21,6 +24,6 @@
     <% end %>
   </div>
   <div class="column col-6">
-    <iframe id="preview" width="100%" height="100%" src="<%= admin_settings_email_template_path(@email_template) %>">
+    <iframe id="preview" data-target="email-template-editor.preview" width="100%" height="100%" src="<%= admin_settings_email_template_path(@email_template) %>">
   </div>
 </div>

@@ -74,11 +74,36 @@
       }
     }
   </style>
+  <style type="text/css">
+    .marquee {
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='red' stroke-width='4' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'%3e%3canimate attributeName='stroke-dashoffset' values='0;19' dur='1s' repeatCount='indefinite' /%3e%3c/rect%3e%3c/svg%3e");
+    }
+
+    @keyframes dash {
+      to {
+        background-position: 100% 0%, 0% 100%, 0% 0%, 100% 100%;
+      }
+    }
+
+    #preview-subject {
+      padding: .5rem;
+      border-bottom: solid 1px #ccc;
+    }
+
+    #preview-subject:before {
+      content: "Subject: ";
+      font-family: monospace;
+    }
+  </style>
 </head>
 
 <body style="background-color:#F4F4F4;">
   <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;"> <%= @email_template.subject %> </div>
   <div style="background-color:#F4F4F4;">
+    <!-- htmlmin:ignore --><% if @preview %><div id="preview-subject" class="email_template_subject">
+      <div><%= @email_template.subject %></div>
+    </div><% end %>
+    <!-- htmlmin:ignore -->
     <!--[if mso | IE]>
       <table
          align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
@@ -165,8 +190,8 @@
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tr>
-                    <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                      <div style="font-family:Montserrat, Helvetica, Arial, sans-serif;font-size:36px;font-weight:bold;line-height:28px;text-align:center;color:#1D181A;"><%= @email_template.title %></div>
+                    <td align="center" class="email_template_title" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                      <div style="font-family:Montserrat, Helvetica, Arial, sans-serif;font-size:36px;font-weight:bold;line-height:34px;text-align:center;color:#1D181A;"><%= @email_template.title %></div>
                     </td>
                   </tr>
                 </table>
@@ -211,7 +236,7 @@
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tr>
-                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                    <td align="left" class="email_template_prebody" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                       <div style="font-family:Montserrat, Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#1D181A;"><%= @email_template.prebody -%></div>
                     </td>
                   </tr>
@@ -257,7 +282,7 @@
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tr>
-                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                    <td align="left" class="email_template_body" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                       <div style="font-family:Montserrat, Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#1D181A;"><%= @email_template.body -%></div>
                     </td>
                   </tr>
@@ -303,7 +328,7 @@
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tr>
-                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                    <td align="left" class="email_template_postbody" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                       <div style="font-family:Montserrat, Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#1D181A;"><%= @email_template.postbody -%></div>
                     </td>
                   </tr>
